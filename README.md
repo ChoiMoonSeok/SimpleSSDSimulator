@@ -1,5 +1,8 @@
 # SimpleSSD
 
+## environment 
+Only tested with Ubuntu 20.04
+
 ## How to use?
 At first, You should create your trace file.
 
