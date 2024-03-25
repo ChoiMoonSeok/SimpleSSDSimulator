@@ -48,7 +48,7 @@ class FTL:
     def write(self, lba, size):
         total_latency = 0
 
-        while len(self.free_blocks) < self.CAPACITY * 1024 * (1 - self.GC_threshold):
+        while len(self.free_blocks) < (self.CAPACITY * 1024 * 1024 // (self.PAGE_PER_BLOCK * self.PAGE_SIZE)) * (1 - self.GC_threshold):
             self.gc(self.GC_Policy)
             self.GC_COUNT += 1
             total_latency += VARIABLE.ERASE_LATENCY
@@ -118,6 +118,10 @@ class FTL:
                 self.lpn_ppn[lpn] = self.blocks[self.write_ptr].write_page()
                 self.ppn_lpn[self.lpn_ppn[lpn]] = lpn
             else:
-                self.write_ptr = self.free_blocks.pop()
+                try:
+                    self.write_ptr = self.free_blocks.pop()
+                except IndexError:
+                    print("SSD Capacity is not enough!")
+                    exit()
                 self.lpn_ppn[lpn] = self.blocks[self.write_ptr].write_page()
                 self.ppn_lpn[self.lpn_ppn[lpn]] = lpn
