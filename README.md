@@ -10,6 +10,8 @@ Trace file should have LBA and Size(bytes).
 For example, if you have a trace with LBA : 100, Size : 40 bytes
 
 LBA, Size
+
+
 100, 40
 
 If you create your trace file, then let's run it!
