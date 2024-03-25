@@ -15,10 +15,10 @@ def main(trace_path):
     total_latency_ms = 0
 
     ssd = FTL.FTL(VARIABLE.SSD_CAPACITY, VARIABLE.PAGE_PER_BLOCK,
-                  VARIABLE.PAGE_CAPACITY, VARIABLE.GC_THRESHOLD)
+                  VARIABLE.PAGE_CAPACITY, VARIABLE.GC_THRESHOLD, VARIABLE.GC_POLICY)
 
     ms_ssd = MS_FTL.MS_FTL(VARIABLE.SSD_CAPACITY, VARIABLE.PAGE_PER_BLOCK,
-                           VARIABLE.PAGE_CAPACITY, VARIABLE.GC_THRESHOLD)
+                           VARIABLE.PAGE_CAPACITY, VARIABLE.GC_THRESHOLD, VARIABLE.GC_POLICY)
 
     with open(trace_path) as f:
         lines = f.readlines()

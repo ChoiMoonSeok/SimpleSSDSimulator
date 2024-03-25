@@ -10,12 +10,14 @@ class FTL:
     GC_COUNT = 0
     USER_WRITE_COUNT = 0
     TOTAL_WRITE_COUNT = 0
+    CLOSE_BLOCK_POOL = deque()
 
-    def __init__(self, ssd_capa, page_per_block, page_size, gc_threshold):
+    def __init__(self, ssd_capa, page_per_block, page_size, gc_threshold, gc_policy):
         self.CAPACITY = ssd_capa
         self.PAGE_PER_BLOCK = page_per_block
         self.PAGE_SIZE = page_size
         self.GC_threshold = gc_threshold
+        self.GC_Policy = gc_policy
 
         print('init ssd')
 
@@ -47,7 +49,7 @@ class FTL:
         total_latency = 0
 
         while len(self.free_blocks) < self.CAPACITY * 1024 * (1 - self.GC_threshold):
-            self.gc()
+            self.gc(self.GC_Policy)
             self.GC_COUNT += 1
             total_latency += VARIABLE.ERASE_LATENCY
 
@@ -79,21 +81,30 @@ class FTL:
                 self.lpn_ppn[lpn] = self.blocks[self.write_ptr].write_page()
                 self.ppn_lpn[self.lpn_ppn[lpn]] = lpn
             else:
-                self.write_ptr = self.free_blocks.pop()
+                self.CLOSE_BLOCK_POOL.appendleft(self.write_ptr)
+                try:
+                    self.write_ptr = self.free_blocks.pop()
+                except IndexError:
+                    print("SSD Capacity is not enough!")
+                    exit()
                 self.lpn_ppn[lpn] = self.blocks[self.write_ptr].write_page()
                 self.ppn_lpn[self.lpn_ppn[lpn]] = lpn
 
         return total_latency
 
-    def gc(self):
+    def gc(self, policy):
         max_invalid = 0
-        gc_block = None
-        for idx, block in enumerate(self.blocks):
-            if block.blk_id != self.write_ptr:
-                if block.invalid_count > max_invalid:
-                    gc_block = idx
-                    max_invalid = block.invalid_count
 
+        if policy == 'greedy':
+            gc_block = None
+            for idx, block in enumerate(self.blocks):
+                if block.blk_id != self.write_ptr:
+                    if block.invalid_count > max_invalid:
+                        gc_block = idx
+                        max_invalid = block.invalid_count
+        if policy == 'fifo':
+            gc_block = self.CLOSE_BLOCK_POOL.pop()
+        
         valid_ppns = self.blocks[gc_block].erase_block()
         self.free_blocks.appendleft(gc_block)
 
