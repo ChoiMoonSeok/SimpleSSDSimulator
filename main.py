@@ -6,7 +6,6 @@ import MS_FTL
 import VARIABLE
 
 path = sys.argv[1]
-# path = '/home/chms/ML-DT_Raid_Multi-Stream/Oracle/DT_FIO_predicted.csv'
 
 
 def main(trace_path):
